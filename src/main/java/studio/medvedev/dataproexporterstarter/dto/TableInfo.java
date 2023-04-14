@@ -1,9 +1,10 @@
 package studio.medvedev.dataproexporterstarter.dto;
 
-import org.apache.logging.log4j.util.Strings;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static studio.medvedev.dataproexporterstarter.utils.StringUtils.isNotBlank;
 
 public class TableInfo<DATA> {
 
@@ -76,7 +77,7 @@ public class TableInfo<DATA> {
 
         public TableInfoBuilder<DATA> title(String value) {
             this.tableInfo.title = value;
-            if (Strings.isNotBlank(value)) {
+            if (isNotBlank(value)) {
                 this.tableInfo.withTitle = true;
             }
             return this;

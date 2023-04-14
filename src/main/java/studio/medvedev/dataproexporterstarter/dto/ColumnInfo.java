@@ -10,7 +10,7 @@ public class ColumnInfo<DATA> {
     private String code;
     private String header;
     private int width = 100;
-    private Integer maxWidth;
+    private int maxWidth = 100;
     private boolean autoWidth = false;
     private CellDataType cellDataType = CellDataType.GENERAL;
     private ColumnCellStyle headerCellStyle;

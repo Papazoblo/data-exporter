@@ -2,6 +2,7 @@ package studio.medvedev.dataproexporterstarter.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ExportModel {
 
@@ -15,6 +16,10 @@ public class ExportModel {
 
     private ExportModel() {
 
+    }
+
+    public List<ListInfo<?>> getList() {
+        return list;
     }
 
     public static class ExportModelBuilder {
@@ -49,7 +54,7 @@ public class ExportModel {
                 for (int i = 0, j = 0; i < tableInfoDataSize; i += this.model.maxListRows, j++) {
                     this.model.list.add(ListInfo.builder()
                             .tableInfo(tableInfo)
-                            .name(String.format("%s #%d", tableInfo.getListName(), j))
+                            .name(String.format("%s #%d", Optional.ofNullable(tableInfo.getListName()).orElse(""), j).trim())
                             .startIndex(i)
                             .lastIndex(Math.min((i + this.model.maxListRows), tableInfoDataSize))
                             .build());

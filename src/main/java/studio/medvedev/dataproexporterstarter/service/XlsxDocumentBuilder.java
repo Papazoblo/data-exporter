@@ -6,13 +6,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.core.io.InputStreamResource;
 import studio.medvedev.dataproexporterstarter.dto.ColumnCellStyle;
 import studio.medvedev.dataproexporterstarter.dto.ColumnInfo;
 import studio.medvedev.dataproexporterstarter.dto.ListInfo;
 import studio.medvedev.dataproexporterstarter.dto.TableInfo;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -21,13 +19,14 @@ import java.util.Map;
 import java.util.Optional;
 
 import static studio.medvedev.dataproexporterstarter.utils.SheetUtils.of;
+import static studio.medvedev.dataproexporterstarter.utils.StringUtils.changeCharset;
 
 
 public class XlsxDocumentBuilder {
 
     private static final int WINDOW_SIZE = 100;
 
-    public InputStreamResource export(List<ListInfo<?>> listInfo) throws IOException {
+    public byte[] export(List<ListInfo<?>> listInfo) throws IOException {
 
         SXSSFWorkbook workbook = new SXSSFWorkbook(WINDOW_SIZE);
         //todo вопросики
@@ -41,7 +40,7 @@ public class XlsxDocumentBuilder {
     }
 
     private void buildSheetList(SXSSFWorkbook workbook, ListInfo<?> listInfo) {
-        SXSSFSheet sheet = workbook.createSheet(listInfo.getName());
+        SXSSFSheet sheet = workbook.createSheet(changeCharset(listInfo.getName()));
         TableInfo tableInfo = listInfo.getTableInfo();
 
         if (tableInfo.isWithFilter()) {
@@ -66,7 +65,7 @@ public class XlsxDocumentBuilder {
 
         Row title = sheet.createRow(0);
         Cell titleCell = title.createCell(0);
-        titleCell.setCellValue(tableInfo.getTitle());
+        titleCell.setCellValue(changeCharset(tableInfo.getTitle()));
         titleCell.setCellStyle(of(workbook, ColumnCellStyle.DEFAULT_STYLE));
     }
 
@@ -78,8 +77,9 @@ public class XlsxDocumentBuilder {
             if (column.isAutoWidth()) {
                 sheet.trackColumnForAutoSizing(i);
             }
+            sheet.setColumnWidth(i, column.getWidth() * 100);
             Cell headerCell = header.createCell(i);
-            headerCell.setCellValue(columns.get(i).getHeader());
+            headerCell.setCellValue(changeCharset(columns.get(i).getHeader()));
             headerCell.setCellStyle(of(workbook, columns.get(i).getHeaderCellStyle()));
             if (i == 0) {
                 header.setHeight(columns.get(i).getHeaderCellStyle().getHeight());
@@ -93,11 +93,11 @@ public class XlsxDocumentBuilder {
         }
 
         int startStartNum = tableInfo.isWithTitle() ? 2 : 1;
-        for (int rowNum = startStartNum; rowNum <= tableInfo.getData().size() + startStartNum; rowNum++) {
+        for (int rowNum = startStartNum; rowNum < tableInfo.getData().size() + startStartNum; rowNum++) {
 
-            Object data = tableInfo.getData().get(rowNum);
+            Object data = tableInfo.getData().get(rowNum - startStartNum);
             Row row = sheet.createRow(rowNum);
-            List<ColumnInfo> columns = tableInfo.getData();
+            List<ColumnInfo> columns = tableInfo.getColumnInfoList();
             Map<Integer, CellStyle> cellStyleMap = new HashMap<>();
             for (int i = 0; i < columns.size(); i++) {
                 ColumnInfo columnInfo = columns.get(i);
@@ -119,7 +119,7 @@ public class XlsxDocumentBuilder {
                             }
                             break;
                         case GENERAL:
-                            cell.setCellValue(value);
+                            cell.setCellValue(changeCharset(value));
                             break;
                     }
                 }
@@ -139,21 +139,19 @@ public class XlsxDocumentBuilder {
             if (columnInfo.isAutoWidth()) {
                 sheet.autoSizeColumn(colNum);
             } else {
-                if (sheet.getColumnWidth(colNum) > columnInfo.getMaxWidth()) {
-                    sheet.setColumnWidth(colNum, columnInfo.getMaxWidth());
+                if (sheet.getColumnWidth(colNum) > columnInfo.getMaxWidth() * 100) {
+                    sheet.setColumnWidth(colNum, columnInfo.getMaxWidth() * 100);
                 }
             }
         }
     }
 
-    private static InputStreamResource buildOutput(SXSSFWorkbook workbook) throws IOException {
-        byte[] bytes;
+    private static byte[] buildOutput(SXSSFWorkbook workbook) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         workbook.write(bos);
         workbook.dispose();
         workbook.close();
-        bytes = bos.toByteArray();
-        return new InputStreamResource(new ByteArrayInputStream(bytes));
+        return bos.toByteArray();
     }
 
 }

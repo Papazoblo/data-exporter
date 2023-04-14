@@ -24,7 +24,7 @@ public class ColumnCellStyle {
     private HorizontalAlignment horizontalAlignment = HorizontalAlignment.CENTER;
     private VerticalAlignment verticalAlignment = VerticalAlignment.TOP;
     private boolean wrapText = false;
-    private short height = 100;
+    private short height = 500;
     private BorderStyle borderBottom = BorderStyle.NONE;
     private BorderStyle borderTop = BorderStyle.NONE;
     private BorderStyle borderLeft = BorderStyle.NONE;
